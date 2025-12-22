@@ -5,7 +5,6 @@ from argparse import Namespace
 import os
 import argparse
 import socket
-import test
 
 HOST = "192.168.0.15"
 PORT ="0"
