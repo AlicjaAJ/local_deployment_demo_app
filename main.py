@@ -5,10 +5,14 @@ from argparse import Namespace
 import os
 import argparse
 import socket
+import test
 
 HOST = "192.168.0.15"
+PORT ="0"
+PORT_TEXT ="port_text.txt"
 
 def main():
+    global PORT
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-port", type = int, help = "Port to run the server on (if port not provided, a random port will be assigned).")
@@ -37,6 +41,11 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((HOST, PORT))
     PORT = sock.getsockname()[1]
+    
+    # Saves port to a text file
+    with open(PORT_TEXT, "w") as port_storage:
+        port_storage.write(str(PORT))
+    
     sock.close()   
 
     print(f"Port set to: {PORT}")
@@ -48,9 +57,14 @@ def main():
         server.serve_forever()
     except KeyboardInterrupt:
         ()
+        
     except:
         print("Invalid port or server error.")
     finally:
+        
+        with open(PORT_TEXT, "w") as port_storage:
+            port_storage.write("0")
+            
         server.server_close()
         print(" Stopping server.")
     

@@ -1,31 +1,39 @@
+from bs4 import BeautifulSoup
 import requests
 import os
 
-PORT = os.getenv("PORT")
+def test_server():
+    HOST = "192.168.0.15"
+    PORT ="0"
+    PORT_TEXT ="port_text.txt"
 
-HOST = os.getenv("HOST")
+    # Reads the port from the text file
+    with open(PORT_TEXT, "r") as port_storage:
+        PORT = port_storage.read().strip()
 
-if PORT is None:
-    print("PORT environment variable not set.")
+    if PORT is None:
+        print("Server port not found in environment variables. Start the server first.")
 
-if HOST is None:
-    print("HOST environment variable not set.")
 
-try:
-    
-    response = requests.get(f"http://{HOST}:{PORT}")
-    response.raise_for_status()
-    
-except requests.HTTPError as http_err:
-    
-    print(f"HTTP error occurred: {http_err}")
+    url = f"http://{HOST}:{PORT}"
+
+    try:
         
-except Exception as err:
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        response_text = response.text
+        soup = BeautifulSoup(response_text, "html.parser")
+        print(url)
+        print(soup.prettify())
+        
+    except requests.HTTPError as http_err:
+        
+        print(f"HTTP error occurred: {http_err}")
+            
+    except Exception as err:
+        
+        print(f"Other error occurred: {err}")
     
-    print(f"Other error occurred: {err}")
-    
-else:
-    print("Success!")
-    
-response_text = response.text
-print(response_text)
+if __name__ == "__main__":
+    test_server()
