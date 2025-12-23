@@ -2,16 +2,30 @@
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from argparse import Namespace
+from dotenv import load_dotenv, dotenv_values
 import os
 import argparse
 import socket
 
-HOST = "192.168.0.15"
-PORT ="0"
-PORT_TEXT ="port_text.txt"
+load_dotenv()
+
+host = os.getenv("HOST")
+PORT_TEXT = "port_text.txt"
+silent_logging = os.getenv("SILENT_LOGGING", "False")
+
+class SilentHTTPRequestHandler(SimpleHTTPRequestHandler):
+    def log_message(self, format, *args):
+        if silent_logging != "1":
+            super().log_message(format, *args)
 
 def main():
-    global PORT
+    
+    try:
+        FRONTEND_FOLDER = os.getenv("FOLDER", "/Users/alicjajaskolka/Desktop/Programming/frontend")
+        os.chdir(FRONTEND_FOLDER)
+    except:
+        print("Could not change directory to frontend folder.")
+        return
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-port", type = int, help = "Port to run the server on (if port not provided, a random port will be assigned).")
@@ -22,9 +36,11 @@ def main():
         print("Invalid port or server error.")
         return
     
+    port = 0
+    
     if args.port is not None:
         
-        PORT = args.port
+        port = args.port
     
     else:
         
@@ -32,27 +48,30 @@ def main():
         
         if environ_port is not None:
             
-                PORT = int(environ_port) # add try?????
+                port = int(environ_port) # add try?????
             
         else:
-            PORT = 0
+            ()
             
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((HOST, PORT))
-    PORT = sock.getsockname()[1]
+    sock.bind((host, port))
+    port = sock.getsockname()[1]
     
     # Saves port to a text file
     with open(PORT_TEXT, "w") as port_storage:
-        port_storage.write(str(PORT))
+        port_storage.write(str(port))
     
     sock.close()   
 
-    print(f"Port set to: {PORT}")
+    print(f"Port set to: {port}")
 
-    server = HTTPServer((HOST, PORT), SimpleHTTPRequestHandler)
+    server = HTTPServer((host, port), SilentHTTPRequestHandler)
 
     try:
-        print(f"Starting server at http://{HOST}:{PORT}")
+        print(f"Serving files from folder: {os.getcwd()}")
+        print("Silent logging:", silent_logging)
+        print(type(silent_logging))
+        print(f"Starting server at http://{host}:{port}")
         server.serve_forever()
     except KeyboardInterrupt:
         ()
