@@ -9,10 +9,15 @@ import socket
 
 load_dotenv()
 
-host = os.getenv("HOST")
-PORT_TEXT = "port_text.txt"
-silent_logging = os.getenv("SILENT_LOGGING", "False")
+#---- Configuration ----#
 
+host = os.getenv("HOST") # store host from .env file
+PORT_TEXT = "port_text.txt" # text file to store the port number. Used for communication between server and response.py
+silent_logging = os.getenv("SILENT_LOGGING", "False") # if set to "1", logging is silent
+
+#---- SilentHTTPRequestHandler Class ----#
+
+# SimpleHTTPRequestHandler subclass with overridden log_message method to enable silent logging
 class SilentHTTPRequestHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         if silent_logging != "1":
@@ -20,6 +25,7 @@ class SilentHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 def main():
     
+    # Changes directory to frontend folder
     try:
         FRONTEND_FOLDER = os.getenv("FOLDER", "/Users/alicjajaskolka/Desktop/Programming/frontend")
         os.chdir(FRONTEND_FOLDER)
@@ -27,6 +33,7 @@ def main():
         print("Could not change directory to frontend folder.")
         return
     
+    # Argument parser for port
     parser = argparse.ArgumentParser()
     parser.add_argument("-port", type = int, help = "Port to run the server on (if port not provided, a random port will be assigned).")
 
@@ -38,6 +45,8 @@ def main():
     
     port = 0
     
+    # Parse argument for port set as first priority,
+    # then check .env file, else assign random port
     if args.port is not None:
         
         port = args.port
@@ -52,12 +61,13 @@ def main():
             
         else:
             ()
-            
+    
+    # If port is 0 (no port provided by parser or .env), assign random available port
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((host, port))
     port = sock.getsockname()[1]
     
-    # Saves port to a text file
+    # Saves port to a text file for communication with response.py
     with open(PORT_TEXT, "w") as port_storage:
         port_storage.write(str(port))
     
@@ -68,18 +78,19 @@ def main():
     server = HTTPServer((host, port), SilentHTTPRequestHandler)
 
     try:
-        print(f"Serving files from folder: {os.getcwd()}")
-        print("Silent logging:", silent_logging)
-        print(type(silent_logging))
-        print(f"Starting server at http://{host}:{port}")
+        print(f"Serving files from folder: {os.getcwd()}") # print current working directory
+        print("Silent logging:", silent_logging) # print silent logging status
+        print(f"Starting server at http://{host}:{port}") # print server address
         server.serve_forever()
+        
     except KeyboardInterrupt:
         ()
         
     except:
         print("Invalid port or server error.")
-    finally:
         
+    finally:
+        # On server stop, reset port in text file to "0"
         with open(PORT_TEXT, "w") as port_storage:
             port_storage.write("0")
             

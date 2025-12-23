@@ -1,7 +1,7 @@
 # initial deployment - MVP
 ## Tasks
 - 1 host all the files in the frontend/ folder under port 8080 with a simple python http server DONE
-- 1b set up a silence logging option 
+- 1b set up a silence logging option DONE
 - 2 create a deployment script (bash/python)
 - 3 create a test script that tests the functionality of the following page: /help.html
     filter for API keys in the form: API|XXXXXXXX
