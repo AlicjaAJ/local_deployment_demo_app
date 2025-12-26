@@ -7,8 +7,10 @@ import base64
 
 load_dotenv()
 
-# Define regex pattern for API syntax validation
+# Define regex pattern for plain API keys
 API_SYNTAX = r"API\|\d{8}"
+# Define regex pattern for Base64 encoded API keys
+API_SYNTAX_BASE64 = r"[A-Za-z0-9+/=]{20}"
 
 def test_server():
     
@@ -31,30 +33,39 @@ def test_server():
         # Sends a GET request to the server
         response = requests.get(url)
         response.raise_for_status()
-        
-        response_text = response.text
-        soup = BeautifulSoup(response_text, "html.parser")
-        
-        # Prints the prettified HTML content received from the server (test reasons. remove later)
-        print(soup.prettify())
-        
-        # Initialize list to store found API keywords
-        found_keys = []
-        
-        text = soup.get_text()
-        
-        # Search for API syntax (defined above) in the text content and extend found_keywords list with matches
-        matches = re.findall(API_SYNTAX, text)
-        for match in matches:
-            found_keys.append(match)
-
-        print("Found API keys:", found_keys)
 
     except requests.HTTPError as http_err: 
         print(f"HTTP error occurred: {http_err}")
             
     except Exception as err:
         print(f"Other error occurred: {err}")
+
+    response_text = response.text
+    text = str(BeautifulSoup(response_text, "html.parser"))
+        
+    # Initialize list to store found API keywords
+    found_keys = []
+        
+    # Search for API syntax (defined above) in the text content and extend found_keywords list with matches
+    matches = re.findall(API_SYNTAX, text)
+    for match in matches:
+        found_keys.append(match)
+
+    # Search for Base64 encoded API keys, decode them, and check if they match the API syntax. If they do, add to found_keywords list
+    base64_matches = re.findall(API_SYNTAX_BASE64, text)
+    for base64_match in base64_matches:
+        try:
+            # Decode the Base64 string using UTF-8 encoding (ASCII failed)
+            string_bytes = base64.b64decode(base64_match.encode("utf-8"))
+            string_string = string_bytes.decode("utf-8")
+                
+            if re.match(API_SYNTAX, string_string):
+                found_keys.append(string_string.strip())
+                    
+        except Exception as e:
+            print(f"Decoding {base64_match} failed: {e}")
+            
+    print("Found API keys:", found_keys)
     
 if __name__ == "__main__":
     test_server()
