@@ -8,6 +8,15 @@ set -e
 # Load environment variables
 source .env
 
+# Setting default environment, with an option to override (implement override later)
+HOST="${HOST:-192.168.0.15}"
+PORT="${PORT:-8080}"
+FRONTEND_FOLDER="${FRONTEND_FOLDER:-./frontend}"
+SILENT_LOGGING="${SILENT_LOGGING:-0}"
+
+# Prints the company logo for copyright reasons (from logo.txt)
+cat logo.txt
+
 # Print deployment start
 echo "Starting deployment..."
 

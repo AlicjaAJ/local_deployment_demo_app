@@ -80,7 +80,7 @@ def main():
     try:
         print(f"Serving files from folder: {os.getcwd()}") # print current working directory
         print("Silent logging:", silent_logging) # print silent logging status
-        print(f"Starting server at http://{host}:{port}") # print server address
+        print(f"Starting server at http://{host}:{port}/help.html") # print server address
         server.serve_forever()
         
     except KeyboardInterrupt:
