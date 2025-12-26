@@ -8,6 +8,13 @@ set -e
 # Load environment variables
 source .env
 
+PORT=${PORT:-8080}
+
+# Allows for manual overriding PORT by using syntax ./deploy.sh -port XXXX
+if [ "$1" == "-port" ]; then
+    PORT="$2"
+fi
+
 # Prints the company logo for copyright reasons (from logo.txt)
 cat logo.txt
 echo ""
@@ -17,8 +24,12 @@ echo ""
 echo "Starting deployment..."
 echo ""
 
+# Install dependencies
+echo "Installing dependencies..."
+npm install --production
+
 # Starts http server
-./server.py &
+./server.py -port "$PORT" &
 
 # 10 seconds delay
 sleep 10
@@ -26,11 +37,6 @@ sleep 10
 # Run tests for API stored in response.py
 echo "Strating API test."
 python3 response.py
-
-# Install dependencies
-echo "Installing dependencies..."
-npm install --production
-
 
 echo "Deployment completed successfully!"
 

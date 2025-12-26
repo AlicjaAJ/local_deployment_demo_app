@@ -53,7 +53,7 @@ def main():
     
     else:
         
-        environ_port = os.getenv("PORT")
+        environ_port = int(os.getenv("PORT"))
         
         if environ_port is not None:
             
