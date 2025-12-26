@@ -51,7 +51,7 @@ def test_server():
     for match in matches:
         found_keys.append(match)
 
-    # Search for Base64 encoded API keys, decode them, and check if they match the API syntax. If they do, add to found_keywords list
+    # Search for Base64 encoded API keys, decode them, and check if they match the API syntax. If they do, add to found_keys list
     base64_matches = re.findall(API_SYNTAX_BASE64, text)
     for base64_match in base64_matches:
         try:
