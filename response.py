@@ -1,6 +1,14 @@
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv, dotenv_values
 import requests
 import os
+import re
+import base64
+
+load_dotenv()
+
+# Define regex pattern for API syntax validation
+API_SYNTAX = r"API\|\d{8}"
 
 def test_server():
     
@@ -14,9 +22,10 @@ def test_server():
 
     if PORT is None:
         print("Server port not found in environment variables. Start the server first.")
+        return
 
-
-    url = f"http://{HOST}:{PORT}" # constructs the URL using the host and port
+    url = f"http://{HOST}:{PORT}/help.html" # constructs the URL using the host and port. Points to help.html page
+    print(f"Testing server at: {url}")
 
     try:
         # Sends a GET request to the server
@@ -25,9 +34,22 @@ def test_server():
         
         response_text = response.text
         soup = BeautifulSoup(response_text, "html.parser")
-        # Prints the prettified HTML content received from the server
+        
+        # Prints the prettified HTML content received from the server (test reasons. remove later)
         print(soup.prettify())
         
+        # Initialize list to store found API keywords
+        found_keys = []
+        
+        text = soup.get_text()
+        
+        # Search for API syntax (defined above) in the text content and extend found_keywords list with matches
+        matches = re.findall(API_SYNTAX, text)
+        for match in matches:
+            found_keys.append(match)
+
+        print("Found API keys:", found_keys)
+
     except requests.HTTPError as http_err: 
         print(f"HTTP error occurred: {http_err}")
             
