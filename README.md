@@ -4,7 +4,7 @@
 - 1b set up a silence logging option DONE
 - 2 create a deployment script (bash/python)
 - 3 create a test script that tests the functionality of the following page: /help.html
-    filter for API keys in the form: API|XXXXXXXX
+    filter for API keys in the form: API|XXXXXXXX (and remove them)
 - 3b some of them will be a BASE64 encoded
 - 4 make the script run every day authomatically (cron or scheduler of your choice)
 - 5 make the script run at the end of deployment with a 10 second delay
