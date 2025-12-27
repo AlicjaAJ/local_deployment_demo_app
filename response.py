@@ -27,7 +27,7 @@ def test_server():
         print("Server port not found in environment variables. Start the server first.")
         return
 
-    url = f"http://{HOST}:{PORT}/help.html" # constructs the URL using the host and port. Points to help.html page
+    url = f"http://{HOST}:{PORT}/help_with_keys.html" # constructs the URL using the host and port. Points to help.html page
     print(f"Testing server at: {url}")
 
     try:
@@ -74,11 +74,12 @@ def test_server():
         for key in found_keys:
             api_storage.write(f"{key}\n")
     
+    print("")
     print("Keys securely stored in api.py.")
     
     # Creats a clean copy of help.html
-    original_help = os.path.join(FILE_FOLDER, "help.html")
-    copied_help = os.path.join(FILE_FOLDER, "help_key_removed.html")
+    original_help = os.path.join(FILE_FOLDER, "help_with_keys.html")
+    copied_help = os.path.join(FILE_FOLDER, "help.html")
 
     
     with open(original_help, "r") as original_file:
