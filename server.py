@@ -11,13 +11,14 @@ load_dotenv()
 
 #---- Configuration ----#
 
-host = os.getenv("HOST") # store host from .env file
+HOST = os.getenv("HOST") # store host from .env file
 PORT_TEXT = "port_text.txt" # text file to store the port number. Used for communication between server and response.py
 silent_logging = os.getenv("SILENT_LOGGING", "False") # if set to "1", logging is silent
+FRONTEND_FOLDER = os.getenv("FOLDER") # folder to be served
 
 #---- SilentHTTPRequestHandler Class ----#
 
-# SimpleHTTPRequestHandler subclass with overridden log_message method to enable silent logging
+# SimpleHTTPRequestHandler subclass with overridden log_message method to enable silent logging.
 class SilentHTTPRequestHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         if silent_logging != "1":
@@ -25,71 +26,79 @@ class SilentHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 def main():
     
-    # Changes directory to frontend folder
+    # Changes directory to frontend folder, if it is not set yet
     try:
-        FRONTEND_FOLDER = os.getenv("FOLDER", "/Users/alicjajaskolka/Desktop/Programming/frontend")
         os.chdir(FRONTEND_FOLDER)
-    except:
-        print("Could not change directory to frontend folder.")
+    except Exception as err:
+        print(f"Could not change directory to frontend folder: {err}.")
         return
     
-    # Argument parser for port
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-port", type = int, help = "Port to run the server on (if port not provided, a random port will be assigned).")
-
+    # Creates a socket for the server
     try:
-        args: Namespace = parser.parse_args()
-    except: 
-        print("Invalid port or server error.")
-        return
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Modifying socket options. Allows the socket to reuse the local address.
+        # Allows deploy_cron.sh to quickly restart the server without causing as error.
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    except:
+        print("Failed to open a socket.")
     
-    port = 0
+    # Argument parser for port. Allows user to enter a port in the format -port XXXX.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-port", type = int, help = "Port to run the server on.")
+    
+    #---- Assigning a port ----#
     
     # Parse argument for port set as first priority,
     # then check .env file, else assign random port
-    if args.port is not None:
+    try:
+        args: Namespace = parser.parse_args()
+        PORT = 0
         
-        port = args.port
-    
-    else:
+        if args.port is not None:
+            PORT = args.port
         
-        environ_port = int(os.getenv("PORT"))
-        
-        if environ_port is not None:
-            
-                port = int(environ_port) # add try?????
-            
         else:
-            ()
+            environ_port = int(os.getenv("PORT"))
+            if environ_port is not None:
+                    PORT = int(environ_port)
+                
+            else:
+                ()
+                
+    except Exception as err:
+        print(f"Fail to set the valid port: {err}.")
     
-    # If port is 0 (no port provided by parser or .env), assign random available port
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind((host, port))
-    port = sock.getsockname()[1]
+    # If port is 0 (no port provided by parser or .env), bind a socket to privided host and port
+    try: 
+        sock.bind((HOST, PORT))
+        port = sock.getsockname()[1]
+    except Exception as err:
+        print(f"Failed to bind a socket to port: {PORT} and host: {HOST}: {err}")
     
     # Saves port to a text file for communication with response.py
     with open(PORT_TEXT, "w") as port_storage:
-        port_storage.write(str(port))
+        port_storage.write(str(PORT))
     
     sock.close()   
+    
+    print(f"Port set to: {PORT}")
 
-    print(f"Port set to: {port}")
-
-    server = HTTPServer((host, port), SilentHTTPRequestHandler)
+    # Creats a running server on the provided port and host.
+    server = HTTPServer((HOST, PORT), SilentHTTPRequestHandler)
     server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    print(f"Serving files from folder: {os.getcwd()}") # print current working directory
+    print("Silent logging:", silent_logging) # print silent logging status
+    print(f"Starting server at http://{HOST}:{PORT}/help.html") # print server address
 
     try:
-        print(f"Serving files from folder: {os.getcwd()}") # print current working directory
-        print("Silent logging:", silent_logging) # print silent logging status
-        print(f"Starting server at http://{host}:{port}/help.html") # print server address
         server.serve_forever()
         
     except KeyboardInterrupt:
         ()
         
-    except:
-        print("Invalid port or server error.")
+    except Exception as err:
+        print(f"Error in server run: {err}")
         
     finally:
         # On server stop, reset port in text file to "0"

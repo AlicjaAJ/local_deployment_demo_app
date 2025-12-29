@@ -7,12 +7,18 @@ import base64
 
 load_dotenv()
 
+#---- Syntax for API ----#
+
 # Define regex pattern for plain API keys
 API_SYNTAX = r"API\|\d{8}"
 # Define regex pattern for Base64 encoded API keys
 API_SYNTAX_BASE64 = r"[A-Za-z0-9+/=]{20}"
 
+#---- Function checing the http page for plain and base64 encoded API keys ----#
+
 def test_server():
+    
+    #---- Configuration ----#
     
     FILE_FOLDER = os.getenv("FOLDER")
     HOST = os.getenv("HOST") # store host from .env file
@@ -27,7 +33,7 @@ def test_server():
         print("Server port not found in environment variables. Start the server first.")
         return
 
-    url = f"http://{HOST}:{PORT}/help_with_keys.html" # constructs the URL using the host and port. Points to help.html page
+    url = f"http://{HOST}:{PORT}/help_with_keys.html" # construct the URL port to be checked for API keys. 
     print(f"Testing server at: {url}")
 
     try:
@@ -41,6 +47,7 @@ def test_server():
     except Exception as err:
         print(f"Other error occurred: {err}")
 
+    # Esures that requested content of the server is in a text format. Entire server syntax (including headers and comments) is included.
     response_text = response.text
     text = str(BeautifulSoup(response_text, "html.parser"))
         
@@ -77,7 +84,7 @@ def test_server():
     print("")
     print("Keys securely stored in api.py.")
     
-    # Creats a clean copy of help.html
+    # Creats a clean copy of help_with_keys.html and stores it in help.html
     original_help = os.path.join(FILE_FOLDER, "help_with_keys.html")
     copied_help = os.path.join(FILE_FOLDER, "help.html")
 
@@ -85,10 +92,10 @@ def test_server():
     with open(original_help, "r") as original_file:
         html = original_file.read()
         
+        # Removes API keys from the text.
         for key in found_keys:
             html = html.replace(key, "")
         
-        # IMPROVE THIS PART!!!
         for key64 in base64_matches:
             try:
                 # Decode the Base64 string using UTF-8 encoding (ASCII failed)
@@ -99,7 +106,8 @@ def test_server():
                     html = html.replace(f"'key64'", "")
                     html = html.replace(f'"key64"', "")
                     html = html.replace(key64, "")
-            except Exception:
+            except Exception as err:
+                print(f"Error in removing keys: {err}")
                 continue
         
         with open(copied_help, "w") as copied_file:
