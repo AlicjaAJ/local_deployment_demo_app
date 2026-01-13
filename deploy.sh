@@ -35,9 +35,11 @@ npm install --production
 sleep 10
 
 # Run tests for API stored in response.py
+echo ""
 echo "Strating API test."
 python3 response.py
 
+echo ""
 echo "Deployment completed successfully!"
 
 

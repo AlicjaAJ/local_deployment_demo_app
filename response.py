@@ -14,6 +14,7 @@ API_SYNTAX_BASE64 = r"[A-Za-z0-9+/=]{20}"
 
 def test_server():
     
+    FILE_FOLDER = os.getenv("FOLDER")
     HOST = os.getenv("HOST") # store host from .env file
     PORT = "0" # default port value
     PORT_TEXT ="port_text.txt" # text file to store the port number. Used for communication between server and response.py
@@ -26,7 +27,7 @@ def test_server():
         print("Server port not found in environment variables. Start the server first.")
         return
 
-    url = f"http://{HOST}:{PORT}/help.html" # constructs the URL using the host and port. Points to help.html page
+    url = f"http://{HOST}:{PORT}/help_with_keys.html" # constructs the URL using the host and port. Points to help.html page
     print(f"Testing server at: {url}")
 
     try:
@@ -66,6 +67,43 @@ def test_server():
             print(f"Decoding {base64_match} failed: {e}")
             
     print("Found API keys:", found_keys)
+    
+    # Store found API keys in api.py
+    with open("api.txt", "w") as api_storage:
+        api_storage.write("API keys: \n")
+        for key in found_keys:
+            api_storage.write(f"{key}\n")
+    
+    print("")
+    print("Keys securely stored in api.py.")
+    
+    # Creats a clean copy of help.html
+    original_help = os.path.join(FILE_FOLDER, "help_with_keys.html")
+    copied_help = os.path.join(FILE_FOLDER, "help.html")
+
+    
+    with open(original_help, "r") as original_file:
+        html = original_file.read()
+        
+        for key in found_keys:
+            html = html.replace(key, "")
+        
+        # IMPROVE THIS PART!!!
+        for key64 in base64_matches:
+            try:
+                # Decode the Base64 string using UTF-8 encoding (ASCII failed)
+                string_bytes = base64.b64decode(key64.encode("utf-8"))
+                string_string = string_bytes.decode("utf-8").strip()
+
+                if string_string in found_keys:
+                    html = html.replace(f"'key64'", "")
+                    html = html.replace(f'"key64"', "")
+                    html = html.replace(key64, "")
+            except Exception:
+                continue
+        
+        with open(copied_help, "w") as copied_file:
+            copied_file.write(html)
     
 if __name__ == "__main__":
     test_server()
