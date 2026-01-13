@@ -7,6 +7,7 @@ source .env
 PID=$( ps aux | grep '[s]erver.py' | awk '{print $2}' )
 PORT_RUNNING=$(cat port_text.txt)
 HOST=${HOST:-127.0.0.1}
+FOLDER=${FOLDER}
 
 if [ -n "$PID" ]; then
     echo ""
@@ -20,5 +21,5 @@ if [ -n "$PID" ]; then
 fi
 
 # Run delploy.sh
-cd /Users/alicjajaskolka/Desktop/Programming/frontend
+cd "$FOLDER"
 ./deploy.sh
