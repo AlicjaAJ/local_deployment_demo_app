@@ -64,6 +64,7 @@ def main():
     
     # If port is 0 (no port provided by parser or .env), assign random available port
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind((host, port))
     port = sock.getsockname()[1]
     
@@ -76,6 +77,7 @@ def main():
     print(f"Port set to: {port}")
 
     server = HTTPServer((host, port), SilentHTTPRequestHandler)
+    server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     try:
         print(f"Serving files from folder: {os.getcwd()}") # print current working directory
